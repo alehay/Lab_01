@@ -27,7 +27,16 @@ void fill_mtrx_rand_val(int A_size, int B_size, double Matrix[A_size][B_size]) {
     for (int B_indx = 0; B_indx < B_size; ++B_indx) {
       Matrix[A_indx][B_indx] = Random();
     }
-    printf("\n");
+  }
+}
+
+void fill_mtrx_exemple(int A_size, int B_size, double Matrix[A_size][B_size]) {
+  int i = 0 ; 
+  for (int A_indx = 0; A_indx < A_size; ++A_indx) {
+    for (int B_indx = 0; B_indx < B_size; ++B_indx) {
+      Matrix[A_indx][B_indx] = i++;
+    }
+    i += 10;
   }
 }
 
