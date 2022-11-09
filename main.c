@@ -63,6 +63,8 @@ void kernel_3mm_paralel(int P_size, int R_size, int Q_size, int T_size,
 
   // matrix multiply
   // E = A * B
+#pragma scop
+
 #pragma omp parallel for
   for (int P_indx = 0; P_indx < P_size; P_indx++) {
     for (int R_indx = 0; R_indx < R_size; R_indx++) {
@@ -88,7 +90,86 @@ void kernel_3mm_paralel(int P_size, int R_size, int Q_size, int T_size,
       for (int R_indx = 0; R_indx < R_size; ++R_indx)
         G[P_indx][T_indx] += E[P_indx][R_indx] * F[R_indx][T_indx];
     }
+#pragma endscop
+
 }
+
+void kernel_3mm_paralel_2tread(int P_size, int R_size, int Q_size, int T_size,
+                        int S_size, double E[P_size][R_size],
+                        double A[P_size][Q_size], double B[Q_size][R_size],
+
+                        double F[R_size][T_size], double C[R_size][S_size],
+                        double D[S_size][T_size],
+
+                        double G[P_size][T_size]) {
+
+  // matrix multiply
+  // E = A * B
+#pragma omp parallel for num_threads(2)
+  for (int P_indx = 0; P_indx < P_size; P_indx++) {
+    for (int R_indx = 0; R_indx < R_size; R_indx++) {
+      E[P_indx][R_indx] = 0.0;
+      for (int Q_indx = 0; Q_indx < Q_size; ++Q_indx)
+        E[P_indx][R_indx] += A[P_indx][Q_indx] * B[Q_indx][R_indx];
+    }
+  }
+
+  // F = C * D
+#pragma omp parallel for num_threads(2)
+  for (int R_indx = 0; R_indx < R_size; R_indx++)
+    for (int T_indx = 0; T_indx < T_size; T_indx++) {
+      F[R_indx][T_indx] = 0.0;
+      for (int S_indx = 0; S_indx < S_size; ++S_indx)
+        F[R_indx][T_indx] += C[R_indx][S_indx] * D[S_indx][T_indx];
+    }
+//  G = E * F
+#pragma omp parallel for num_threads(2)
+  for (int P_indx = 0; P_indx < P_size; P_indx++)
+    for (int T_indx = 0; T_indx < T_size; T_indx++) {
+      G[P_indx][T_indx] = 0.0;
+      for (int R_indx = 0; R_indx < R_size; ++R_indx)
+        G[P_indx][T_indx] += E[P_indx][R_indx] * F[R_indx][T_indx];
+    }
+}
+
+void kernel_3mm_paralel_4tread(int P_size, int R_size, int Q_size, int T_size,
+                        int S_size, double E[P_size][R_size],
+                        double A[P_size][Q_size], double B[Q_size][R_size],
+
+                        double F[R_size][T_size], double C[R_size][S_size],
+                        double D[S_size][T_size],
+
+                        double G[P_size][T_size]) {
+
+  // matrix multiply
+  // E = A * B
+#pragma omp parallel for num_threads(4)
+  for (int P_indx = 0; P_indx < P_size; P_indx++) {
+    for (int R_indx = 0; R_indx < R_size; R_indx++) {
+      E[P_indx][R_indx] = 0.0;
+      for (int Q_indx = 0; Q_indx < Q_size; ++Q_indx)
+        E[P_indx][R_indx] += A[P_indx][Q_indx] * B[Q_indx][R_indx];
+    }
+  }
+
+  // F = C * D
+#pragma omp parallel for num_threads(4)
+  for (int R_indx = 0; R_indx < R_size; R_indx++)
+    for (int T_indx = 0; T_indx < T_size; T_indx++) {
+      F[R_indx][T_indx] = 0.0;
+      for (int S_indx = 0; S_indx < S_size; ++S_indx)
+        F[R_indx][T_indx] += C[R_indx][S_indx] * D[S_indx][T_indx];
+    }
+//  G = E * F
+#pragma omp parallel for num_threads(4)
+  for (int P_indx = 0; P_indx < P_size; P_indx++)
+    for (int T_indx = 0; T_indx < T_size; T_indx++) {
+      G[P_indx][T_indx] = 0.0;
+      for (int R_indx = 0; R_indx < R_size; ++R_indx)
+        G[P_indx][T_indx] += E[P_indx][R_indx] * F[R_indx][T_indx];
+    }
+}
+
 
 int main() {
 
@@ -152,6 +233,34 @@ int main() {
   float elapsedTime_omp = elapsed_msecs(start_time_omp, finish_time_omp);
   printf("run with omp wersion \n");
   printf("Elapsed Time: %f milliseconds\n", elapsedTime_omp);
+
+
+  struct timeval start_time_omp_2thread;
+  struct timeval finish_time_omp_2thread;
+
+  gettimeofday(&start_time_omp_2thread, 0);
+
+  kernel_3mm_paralel_2tread(P_size, R_size, Q_size, T_size, S_size, E, A, B, F, C, D,
+                     G);
+
+  gettimeofday(&finish_time_omp_2thread, 0);
+  float elapsedTime_omp_2 = elapsed_msecs(start_time_omp_2thread, finish_time_omp_2thread);
+  printf("run with omp 2 threads wersion \n");
+  printf("Elapsed Time: %f milliseconds\n", elapsedTime_omp_2);
+
+  struct timeval start_time_omp_4thread;
+  struct timeval finish_time_omp_4thread;
+
+  gettimeofday(&start_time_omp_4thread, 0);
+
+  kernel_3mm_paralel_4tread(P_size, R_size, Q_size, T_size, S_size, E, A, B, F, C, D,
+                     G);
+
+  gettimeofday(&finish_time_omp_4thread, 0);
+  float elapsedTime_omp_4 = elapsed_msecs(start_time_omp_4thread, finish_time_omp_4thread);
+  printf("run with omp 4 threads wersion \n");
+  printf("Elapsed Time: %f milliseconds\n", elapsedTime_omp_4);
+
 
   // print_matrix(P_size, T_size, G);
 
