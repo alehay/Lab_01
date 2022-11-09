@@ -150,7 +150,7 @@ int main() {
 
   gettimeofday(&finish_time_omp, 0);
   float elapsedTime_omp = elapsed_msecs(start_time_omp, finish_time_omp);
-  printf("run without omp wersion \n");
+  printf("run with omp wersion \n");
   printf("Elapsed Time: %f milliseconds\n", elapsedTime_omp);
 
   // print_matrix(P_size, T_size, G);
